@@ -1,0 +1,27 @@
+server:
+  port: 8080
+
+logging:
+  level:
+    org.springframework.web.filter.CommonsRequestLoggingFilter: debug
+    _org.springframework.web.servlet.HandlerMapping.Mappings: debug
+
+spring:
+  jackson:
+    default-property-inclusion: NON_NULL
+  datasource:
+    url: jdbc:postgresql://localhost:5432/register
+    username: root
+    password: 1
+  jpa:
+    generate-ddl: true
+#
+kafka:
+  host: 10.24.32.11:9092
+  consumer:
+    registration:
+      topic: register-class
+      group-id: group-1
+
+security:
+  ignored=/**
