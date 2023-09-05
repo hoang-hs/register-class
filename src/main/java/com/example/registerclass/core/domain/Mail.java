@@ -1,6 +1,7 @@
 package com.example.registerclass.core.domain;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -14,11 +15,11 @@ import java.sql.Timestamp;
 @Getter
 @Setter
 @ToString
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @Table(name = "mail")
 public class Mail {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", nullable = false)
     private Long id;
 
     private String content;
@@ -28,9 +29,7 @@ public class Mail {
     private Registration registration;
 
     @CreationTimestamp
-    @JsonProperty("created_at")
     Timestamp createdAt;
     @UpdateTimestamp
-    @JsonProperty("updated_at")
     Timestamp updatedAt;
 }

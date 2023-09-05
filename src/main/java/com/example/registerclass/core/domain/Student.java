@@ -1,21 +1,23 @@
 package com.example.registerclass.core.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import org.hibernate.proxy.HibernateProxy;
 
 import java.sql.Timestamp;
-import java.util.Objects;
 
 
 @Getter
 @Setter
 @ToString
 @Entity
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @Table(name = "student")
 public class Student {
     @Id
@@ -29,14 +31,11 @@ public class Student {
 
     private String name;
     private String email;
-    @JsonProperty("phone_number")
     private String phoneNumber;
     private int year;
     @CreationTimestamp
-    @JsonProperty("created_at")
     Timestamp createdAt;
     @UpdateTimestamp
-    @JsonProperty("updated_at")
     Timestamp updatedAt;
 
 

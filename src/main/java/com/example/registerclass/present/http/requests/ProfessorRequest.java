@@ -1,12 +1,14 @@
 package com.example.registerclass.present.http.requests;
 
 import com.example.registerclass.core.domain.Professor;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 
 @Data
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class ProfessorRequest {
     @NotBlank
     private String username;
@@ -20,7 +22,6 @@ public class ProfessorRequest {
     private String address;
     @NotBlank
     @Pattern(regexp = "(^$|[0-9]{10})")
-    @JsonProperty("phone_number")
     private String phoneNumber;
 
     public Professor ToDomain() {

@@ -1,23 +1,23 @@
 package com.example.registerclass.present.http.requests;
 
 import com.example.registerclass.core.domain.Course;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class CourseRequest {
     @NotBlank
     private String name;
     @NotBlank
-    @JsonProperty("subject_type")
     String subjectType;
     String description;
     @NotNull
     @Min(1)
-    @JsonProperty("professor_id")
     Long professorId;
 
     public Course ToDomain() {
