@@ -1,26 +1,24 @@
 package com.example.registerclass.core.service;
 
 import com.example.registerclass.core.domain.Course;
+import com.example.registerclass.core.domain.Inventory;
 import com.example.registerclass.core.domain.Professor;
 import com.example.registerclass.core.domain.repository.CourseRepository;
+import com.example.registerclass.core.domain.repository.InventoryRepository;
 import com.example.registerclass.core.domain.repository.ProfessorRepository;
 import com.example.registerclass.exception.ResourceNotFoundException;
 import com.example.registerclass.present.http.requests.CourseRequest;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class CourseService {
     private final CourseRepository courseRepository;
     private final ProfessorRepository professorRepository;
-
-    @Autowired
-    public CourseService(CourseRepository courseRepository, ProfessorRepository professorRepository) {
-        this.courseRepository = courseRepository;
-        this.professorRepository = professorRepository;
-    }
+    private final InventoryRepository inventoryRepository;
 
     public Course save(CourseRequest req) {
         Course c = req.ToDomain();
@@ -29,7 +27,14 @@ public class CourseService {
             throw ResourceNotFoundException.WithMessage("professor not found");
         }
         c.setProfessor(optionalProfessor.get());
-        return courseRepository.save(c);
+        Course course = courseRepository.save(c);
+        // Todo pubsub
+        Inventory inventory = new Inventory();
+        inventory.setCourse(course);
+        inventory.setTotalInventory(req.getInventory());
+        inventory.setTotalReserved(0);
+        inventoryRepository.save(inventory);
+        return course;
     }
 
     public Course update(CourseRequest req, Long id) {

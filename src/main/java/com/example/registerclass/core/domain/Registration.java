@@ -31,6 +31,7 @@ public class Registration {
     @JoinColumn(name = "course_id")
     private Course course;
 
+    @Enumerated(EnumType.STRING)
     private StatusRegistration status;
 
     @CreationTimestamp
@@ -38,10 +39,9 @@ public class Registration {
     @UpdateTimestamp
     Timestamp updatedAt;
 
-    public Registration(Student student, Course course, StatusRegistration status) {
+    public Registration(Student student, Course course) {
         this.student = student;
         this.course = course;
-        this.status = status;
     }
 
     public Registration() {

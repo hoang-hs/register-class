@@ -9,17 +9,19 @@ import com.example.registerclass.core.domain.repository.InventoryRepository;
 import com.example.registerclass.core.domain.repository.RegistrationRepository;
 import com.example.registerclass.core.domain.repository.StudentRepository;
 import com.example.registerclass.core.enums.StatusRegistration;
+import com.example.registerclass.exception.BadRequestException;
 import com.example.registerclass.exception.ResourceNotFoundException;
 import com.example.registerclass.exception.SystemErrorException;
 import com.example.registerclass.present.http.requests.RegistrationRequest;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class RegistrationService {
 
     private final RegistrationRepository registrationRepository;
@@ -28,25 +30,39 @@ public class RegistrationService {
     private final KafkaService kafkaService;
     private final InventoryRepository inventoryRepository;
 
-    @Autowired
-    public RegistrationService(RegistrationRepository registrationRepository, StudentRepository studentRepository, CourseRepository courseRepository, KafkaService kafkaService, InventoryRepository inventoryRepository) {
-        this.registrationRepository = registrationRepository;
-        this.studentRepository = studentRepository;
-        this.courseRepository = courseRepository;
-        this.kafkaService = kafkaService;
-        this.inventoryRepository = inventoryRepository;
-    }
-
     public Registration save(RegistrationRequest req) {
+        //Todo cache
         Optional<Student> optionalStudent = studentRepository.findById(req.getStudentId());
         if (optionalStudent.isEmpty()) {
             throw ResourceNotFoundException.Default();
         }
+        Student student = optionalStudent.get();
         Optional<Course> optionalCourse = courseRepository.findById(req.getCourseId());
         if (optionalCourse.isEmpty()) {
             throw ResourceNotFoundException.Default();
         }
-        Registration registration = new Registration(optionalStudent.get(), optionalCourse.get(), StatusRegistration.NEW);
+        Course course = optionalCourse.get();
+        Optional<Inventory> optionalInventory = inventoryRepository.findByCourse(course);
+        if (optionalInventory.isEmpty()) {
+            log.error("inventory is empty, course :{}", course);
+            throw SystemErrorException.Default();
+        }
+        Inventory inventory = optionalInventory.get();
+        if (!inventory.isAvailable()) {
+            throw BadRequestException.WithMessage("het slot");
+        }
+
+        Registration registration;
+        Optional<Registration> optionalRegistration = registrationRepository.findByCourseAndStudent(course, student);
+        if (optionalRegistration.isPresent()) {
+            registration = optionalRegistration.get();
+            if (registration.getStatus() == StatusRegistration.NEW || registration.getStatus() == StatusRegistration.SUCCESS) {
+                throw BadRequestException.WithMessage("data exist");
+            }
+        } else {
+            registration = new Registration(student, course);
+        }
+        registration.setStatus(StatusRegistration.NEW);
         registrationRepository.save(registration);
         kafkaService.send("register-class", registration);
         return registration;
@@ -60,7 +76,7 @@ public class RegistrationService {
         }
         Inventory inventory = optionalInventory.get();
         StatusRegistration status;
-        if (inventory.getTotalReserved() > inventory.getTotalInventory()) {
+        if (inventory.isAvailable()) {
             status = StatusRegistration.SUCCESS;
             inventory.setTotalReserved(inventory.getTotalReserved() + 1);
             inventoryRepository.save(inventory);
@@ -71,4 +87,20 @@ public class RegistrationService {
         registrationRepository.save(registration);
         return true;
     }
+
+    public Registration cancel(Long id) {
+        Optional<Registration> optionalRegistration = registrationRepository.findById(id);
+        if (optionalRegistration.isEmpty()) {
+            throw ResourceNotFoundException.Default();
+        }
+        Registration registration = optionalRegistration.get();
+        if (registration.getStatus() != StatusRegistration.SUCCESS) {
+            throw BadRequestException.WithMessage("registration not success");
+        }
+        registration.setStatus(StatusRegistration.CANCEL);
+        registrationRepository.save(registration);
+        //Todo pubsub kafka update inventory
+        return registration;
+    }
+
 }

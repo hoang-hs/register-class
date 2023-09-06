@@ -20,6 +20,10 @@ public class CourseRequest {
     @Min(1)
     Long professorId;
 
+    @NotNull
+    @Min(1)
+    Integer inventory;
+
     public Course ToDomain() {
         Course c = new Course();
         c.setName(this.getName());

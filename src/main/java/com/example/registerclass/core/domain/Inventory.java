@@ -36,4 +36,9 @@ public class Inventory {
     @UpdateTimestamp
     @JsonProperty("updated_at")
     Timestamp updatedAt;
+
+    @Transient
+    public boolean isAvailable() {
+        return this.totalReserved < this.getTotalInventory();
+    }
 }
