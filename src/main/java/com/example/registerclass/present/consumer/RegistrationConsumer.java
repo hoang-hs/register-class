@@ -40,7 +40,7 @@ public class RegistrationConsumer implements Runnable {
         while (true) {
             ConsumerRecords<String, String> records = consumer.poll(2);
             for (ConsumerRecord<String, String> record : records) {
-                System.out.println("We received message: " + record.value() + " from topic: " + record.topic());
+                System.out.println("We received message: " + record.offset() + " from topic: " + record.topic());
                 try {
                     Registration registration = objectMapper.readValue(record.value(), Registration.class);
                     consumerService.handleRecord(registration);
