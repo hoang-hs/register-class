@@ -20,8 +20,6 @@ kafka:
   host: 10.24.32.11:9092
   consumer:
     registration:
-      topic: register-class
+      register-topic: register-class
+      cancel-topic: cancel-class
       group-id: group-1
-
-security:
-  ignored=/**

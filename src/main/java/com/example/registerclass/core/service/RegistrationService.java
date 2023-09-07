@@ -68,26 +68,6 @@ public class RegistrationService {
         return registration;
     }
 
-    public boolean handleRegisterClass(Registration registration) {
-        Optional<Inventory> optionalInventory = inventoryRepository.findByCourse(registration.getCourse());
-        if (optionalInventory.isEmpty()) {
-            log.error("inventory is empty, course :{}", registration.getCourse());
-            return true;
-        }
-        Inventory inventory = optionalInventory.get();
-        StatusRegistration status;
-        if (inventory.isAvailable()) {
-            status = StatusRegistration.SUCCESS;
-            inventory.setTotalReserved(inventory.getTotalReserved() + 1);
-            inventoryRepository.save(inventory);
-        } else {
-            status = StatusRegistration.FAIL;
-        }
-        registration.setStatus(status);
-        registrationRepository.save(registration);
-        return true;
-    }
-
     public Registration cancel(Long id) {
         Optional<Registration> optionalRegistration = registrationRepository.findById(id);
         if (optionalRegistration.isEmpty()) {
@@ -99,7 +79,7 @@ public class RegistrationService {
         }
         registration.setStatus(StatusRegistration.CANCEL);
         registrationRepository.save(registration);
-        //Todo pubsub kafka update inventory
+        kafkaService.send("cancel-class", registration);
         return registration;
     }
 
