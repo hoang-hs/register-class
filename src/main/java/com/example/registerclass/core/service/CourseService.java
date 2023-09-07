@@ -24,14 +24,12 @@ public class CourseService {
     private final InventoryRepository inventoryRepository;
 
     public Course save(CourseRequest req) {
-        Course c = req.ToDomain();
-        Optional<Professor> optionalProfessor = professorRepository.findById(req.getProfessorId());
-        if (optionalProfessor.isEmpty()) {
-            throw ResourceNotFoundException.WithMessage("professor not found");
-        }
-        c.setProfessor(optionalProfessor.get());
-        Course course = courseRepository.save(c);
-        // Todo pubsub
+        Course course = req.ToDomain();
+        Professor professor = professorRepository.findById(req.getProfessorId())
+                .orElseThrow(() -> ResourceNotFoundException.WithMessage("professor not found"));
+
+        course.setProfessor(professor);
+        courseRepository.save(course);
         Inventory inventory = new Inventory();
         inventory.setCourse(course);
         inventory.setTotalInventory(req.getInventory());
@@ -41,17 +39,13 @@ public class CourseService {
     }
 
     public Course update(CourseRequest req, Long id) {
-        Optional<Course> optionalCourse = courseRepository.findById(id);
-        if (optionalCourse.isEmpty()) {
-            throw ResourceNotFoundException.Default();
-        }
+        Course existedCourse = courseRepository.findById(id).orElseThrow(ResourceNotFoundException::Default);
         Course course = req.ToDomain();
-        Optional<Professor> optionalProfessor = professorRepository.findById(req.getProfessorId());
-        if (optionalProfessor.isEmpty()) {
-            throw ResourceNotFoundException.WithMessage("professor not found");
-        }
-        course.setProfessor(optionalProfessor.get());
-        course.setCreatedAt(optionalCourse.get().getCreatedAt());
+        Professor professor = professorRepository.findById(req.getProfessorId())
+                .orElseThrow(() -> ResourceNotFoundException.WithMessage("professor not found"));
+
+        course.setProfessor(professor);
+        course.setCreatedAt(existedCourse.getCreatedAt());
         course.setId(id);
         Optional<Inventory> optionalInventory = inventoryRepository.findByCourse(course);
         if (optionalInventory.isEmpty()) {
@@ -65,10 +59,7 @@ public class CourseService {
     }
 
     public Course get(Long id) {
-        Optional<Course> optionalCourse = courseRepository.findById(id);
-        if (optionalCourse.isEmpty()) {
-            throw ResourceNotFoundException.Default();
-        }
-        return optionalCourse.get();
+        return courseRepository.findById(id)
+                .orElseThrow(ResourceNotFoundException::Default);
     }
 }

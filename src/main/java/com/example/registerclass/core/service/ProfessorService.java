@@ -9,8 +9,6 @@ import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
-
 @Service
 public class ProfessorService {
     private final ProfessorRepository professorRepository;
@@ -30,23 +28,19 @@ public class ProfessorService {
     }
 
     public Professor update(ProfessorRequest req, Long id) {
-        Optional<Professor> optionalProfessor = professorRepository.findById(id);
-        if (optionalProfessor.isEmpty()) {
-            throw ResourceNotFoundException.Default();
-        }
+        Professor professor = professorRepository.findById(id)
+                .orElseThrow(ResourceNotFoundException::Default);
+
         String password = encoder.encode(req.getPassword());
         Professor s = req.ToDomain();
         s.setPassword(password);
-        s.setCreatedAt(optionalProfessor.get().getCreatedAt());
+        s.setCreatedAt(professor.getCreatedAt());
         s.setId(id);
         return professorRepository.save(s);
     }
 
     public Professor get(Long id) {
-        Optional<Professor> optionalProfessor = professorRepository.findById(id);
-        if (optionalProfessor.isEmpty()) {
-            throw ResourceNotFoundException.Default();
-        }
-        return optionalProfessor.get();
+        return professorRepository.findById(id)
+                .orElseThrow(ResourceNotFoundException::Default);
     }
 }

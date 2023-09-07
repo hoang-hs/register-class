@@ -9,8 +9,6 @@ import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
-
 
 @Service
 public class StudentService {
@@ -25,29 +23,25 @@ public class StudentService {
 
     public Student save(StudentRequest req) {
         String password = encoder.encode(req.getPassword());
-        Student s = req.ToDomain();
-        s.setPassword(password);
-        return studentRepository.save(s);
+        Student student = req.ToDomain();
+        student.setPassword(password);
+        return studentRepository.save(student);
     }
 
     public Student update(StudentRequest req, Long id) {
-        Optional<Student> optionalStudent = studentRepository.findById(id);
-        if (optionalStudent.isEmpty()) {
-            throw ResourceNotFoundException.Default();
-        }
+        Student student = studentRepository.findById(id)
+                .orElseThrow(ResourceNotFoundException::Default);
+
         String password = encoder.encode(req.getPassword());
         Student s = req.ToDomain();
         s.setPassword(password);
-        s.setCreatedAt(optionalStudent.get().getCreatedAt());
+        s.setCreatedAt(student.getCreatedAt());
         s.setId(id);
         return studentRepository.save(s);
     }
 
     public Student get(Long id) {
-        Optional<Student> optionalStudent = studentRepository.findById(id);
-        if (optionalStudent.isEmpty()) {
-            throw ResourceNotFoundException.Default();
-        }
-        return optionalStudent.get();
+        return studentRepository.findById(id)
+                .orElseThrow(ResourceNotFoundException::Default);
     }
 }

@@ -32,16 +32,12 @@ public class RegistrationService {
 
     public Registration save(RegistrationRequest req) {
         //Todo cache
-        Optional<Student> optionalStudent = studentRepository.findById(req.getStudentId());
-        if (optionalStudent.isEmpty()) {
-            throw ResourceNotFoundException.Default();
-        }
-        Student student = optionalStudent.get();
-        Optional<Course> optionalCourse = courseRepository.findById(req.getCourseId());
-        if (optionalCourse.isEmpty()) {
-            throw ResourceNotFoundException.Default();
-        }
-        Course course = optionalCourse.get();
+        Student student = studentRepository.findById(req.getStudentId())
+                .orElseThrow(ResourceNotFoundException::Default);
+
+        Course course = courseRepository.findById(req.getCourseId())
+                .orElseThrow(ResourceNotFoundException::Default);
+
         Optional<Inventory> optionalInventory = inventoryRepository.findByCourse(course);
         if (optionalInventory.isEmpty()) {
             log.error("inventory is empty, course :{}", course);
@@ -49,7 +45,7 @@ public class RegistrationService {
         }
         Inventory inventory = optionalInventory.get();
         if (!inventory.isAvailable()) {
-            throw BadRequestException.WithMessage("het slot");
+            throw BadRequestException.WithMessage("out of slot");
         }
 
         Registration registration;
@@ -57,7 +53,7 @@ public class RegistrationService {
         if (optionalRegistration.isPresent()) {
             registration = optionalRegistration.get();
             if (registration.getStatus() == StatusRegistration.NEW || registration.getStatus() == StatusRegistration.SUCCESS) {
-                throw BadRequestException.WithMessage("data exist");
+                throw BadRequestException.WithMessage("data existed");
             }
         } else {
             registration = new Registration(student, course);
@@ -69,11 +65,9 @@ public class RegistrationService {
     }
 
     public Registration cancel(Long id) {
-        Optional<Registration> optionalRegistration = registrationRepository.findById(id);
-        if (optionalRegistration.isEmpty()) {
-            throw ResourceNotFoundException.Default();
-        }
-        Registration registration = optionalRegistration.get();
+        Registration registration = registrationRepository.findById(id)
+                .orElseThrow(ResourceNotFoundException::Default);
+
         if (registration.getStatus() != StatusRegistration.SUCCESS) {
             throw BadRequestException.WithMessage("registration not success");
         }
