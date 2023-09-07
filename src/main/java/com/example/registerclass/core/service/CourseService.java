@@ -7,14 +7,17 @@ import com.example.registerclass.core.domain.repository.CourseRepository;
 import com.example.registerclass.core.domain.repository.InventoryRepository;
 import com.example.registerclass.core.domain.repository.ProfessorRepository;
 import com.example.registerclass.exception.ResourceNotFoundException;
+import com.example.registerclass.exception.SystemErrorException;
 import com.example.registerclass.present.http.requests.CourseRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Log4j2
 public class CourseService {
     private final CourseRepository courseRepository;
     private final ProfessorRepository professorRepository;
@@ -42,15 +45,23 @@ public class CourseService {
         if (optionalCourse.isEmpty()) {
             throw ResourceNotFoundException.Default();
         }
-        Course c = req.ToDomain();
+        Course course = req.ToDomain();
         Optional<Professor> optionalProfessor = professorRepository.findById(req.getProfessorId());
         if (optionalProfessor.isEmpty()) {
             throw ResourceNotFoundException.WithMessage("professor not found");
         }
-        c.setProfessor(optionalProfessor.get());
-        c.setCreatedAt(optionalCourse.get().getCreatedAt());
-        c.setId(id);
-        return courseRepository.save(c);
+        course.setProfessor(optionalProfessor.get());
+        course.setCreatedAt(optionalCourse.get().getCreatedAt());
+        course.setId(id);
+        Optional<Inventory> optionalInventory = inventoryRepository.findByCourse(course);
+        if (optionalInventory.isEmpty()) {
+            log.error("inventory is empty, course :{}", course);
+            throw SystemErrorException.Default();
+        }
+        Inventory inventory = optionalInventory.get();
+        inventory.setTotalInventory(req.getInventory());
+        inventoryRepository.save(inventory);
+        return courseRepository.save(course);
     }
 
     public Course get(Long id) {
