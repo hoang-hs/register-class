@@ -12,11 +12,16 @@ import com.example.registerclass.core.enums.StatusRegistration;
 import com.example.registerclass.exception.BadRequestException;
 import com.example.registerclass.exception.ResourceNotFoundException;
 import com.example.registerclass.exception.SystemErrorException;
+import com.example.registerclass.present.http.requests.GetRegistrationRequest;
 import com.example.registerclass.present.http.requests.RegistrationRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.EnumUtils;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -75,6 +80,15 @@ public class RegistrationService {
         registrationRepository.save(registration);
         kafkaService.send("cancel-class", registration);
         return registration;
+    }
+
+    public List<Registration> get(GetRegistrationRequest req) {
+        if (EnumUtils.isValidEnum(StatusRegistration.class, req.getStatus())) {
+            log.error("status invalid, req:{}", req);
+            throw SystemErrorException.Default();
+        }
+        Pageable pageable = req.getPageRequest().buildPageable();
+        return registrationRepository.findAllByStudent_IdAndStatus(pageable, req.getStudent_id(), StatusRegistration.valueOf(req.getStatus()));
     }
 
 }
