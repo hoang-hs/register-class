@@ -17,6 +17,7 @@ import java.util.Optional;
 public class ConsumerService {
     private final RegistrationRepository registrationRepository;
     private final InventoryRepository inventoryRepository;
+    private final MailService mailService;
 
     public void handleRecord(Registration registration) {
         switch (registration.getStatus()) {
@@ -43,6 +44,7 @@ public class ConsumerService {
         }
         registration.setStatus(status);
         registrationRepository.save(registration);
+        mailService.sendNotify(registration);
     }
 
     public void cancelClass(Registration registration) {

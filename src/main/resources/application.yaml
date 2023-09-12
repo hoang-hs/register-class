@@ -24,3 +24,7 @@ kafka:
       register-topic: register-class
       cancel-topic: cancel-class
       group-id: group-1
+
+mail:
+  username: kaori12102000@gmail.com
+  password: Hoangholmes1210
