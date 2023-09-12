@@ -17,6 +17,7 @@ import com.example.registerclass.present.http.requests.RegistrationRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.EnumUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -33,6 +34,10 @@ public class RegistrationService {
     private final CourseRepository courseRepository;
     private final KafkaService kafkaService;
     private final InventoryRepository inventoryRepository;
+    @Value("${kafka.consumer.registration.register-topic}")
+    private String registerTopic;
+    @Value("${kafka.consumer.registration.cancel-topic}")
+    private String cancelTopic;
 
     public Registration save(RegistrationRequest req) {
         //Todo cache
@@ -64,7 +69,7 @@ public class RegistrationService {
         }
         registration.setStatus(StatusRegistration.NEW);
         registrationRepository.save(registration);
-        kafkaService.send("register-class", registration);
+        kafkaService.send(registerTopic, registration);
         return registration;
     }
 
@@ -77,7 +82,7 @@ public class RegistrationService {
         }
         registration.setStatus(StatusRegistration.CANCEL);
         registrationRepository.save(registration);
-        kafkaService.send("cancel-class", registration);
+        kafkaService.send(cancelTopic, registration);
         return registration;
     }
 
