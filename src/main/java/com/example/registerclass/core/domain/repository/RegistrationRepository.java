@@ -12,8 +12,5 @@ import java.util.Optional;
 
 public interface RegistrationRepository extends JpaRepository<Registration, Long> {
     Optional<Registration> findByCourseAndStudent(Course course, Student student);
-
-    List<Registration> findAllByStudentAndStatus(Student student, StatusRegistration status);
-
     List<Registration> findAllByStudent_IdAndStatus(Pageable pageable, Long id, StatusRegistration status);
 }
