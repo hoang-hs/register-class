@@ -1,6 +1,6 @@
 package com.example.registerclass.core.enums;
 
-public enum User {
+public enum Role {
     STUDENT,
     PROFESSOR
 }
