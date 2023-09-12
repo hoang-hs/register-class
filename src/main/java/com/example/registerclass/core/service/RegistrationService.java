@@ -18,7 +18,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.EnumUtils;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -83,12 +82,12 @@ public class RegistrationService {
     }
 
     public List<Registration> get(GetRegistrationRequest req) {
-        if (EnumUtils.isValidEnum(StatusRegistration.class, req.getStatus())) {
+        if (!EnumUtils.isValidEnum(StatusRegistration.class, req.getStatus())) {
             log.error("status invalid, req:{}", req);
             throw SystemErrorException.Default();
         }
         Pageable pageable = req.getPageRequest().buildPageable();
-        return registrationRepository.findAllByStudent_IdAndStatus(pageable, req.getStudent_id(), StatusRegistration.valueOf(req.getStatus()));
+        return registrationRepository.findAllByStudent_IdAndStatus(pageable, req.getStudentId(), StatusRegistration.valueOf(req.getStatus()));
     }
 
 }
