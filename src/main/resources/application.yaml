@@ -11,14 +11,14 @@ spring:
     default-property-inclusion: NON_NULL
     property-naming-strategy: SNAKE_CASE
   datasource:
-    url: jdbc:postgresql://localhost:5432/register
+    url: jdbc:postgresql://localhost:5432/fnb
     username: root
     password: 1
   jpa:
     generate-ddl: true
 #
 kafka:
-  host: 10.24.32.11:9092
+  host: localhost:9092
   consumer:
     registration:
       register-topic: register-class
